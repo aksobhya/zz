@@ -12,19 +12,19 @@
             }
         },
         task:{
-            earn:{
-                text:"专属任务"
-            },
-            coin:{
-                text:"金币收益"
+            title:{
+                className:"android.view.View",
+                text:"赚钱技巧"
             },
             btn:{
                 id:"main_tab_task_img"
             }
         },
-        watchtv:{
-            id:"main_bottom_tab_home"
+        btntv:{
+            id:"main_bottom_tab_home",
+            className:"android.widget.RelativeLayout"
         }
+
 
     };
     let sac = {
@@ -39,7 +39,7 @@
                         return false;
                     }              
                 case 'task':
-                    if(sac.util.prove(elements.task.earn, time) && sac.util.prove(elements.task.coin, time)){
+                    if(sac.util.prove(elements.task.btn, time) && sac.util.prove(elements.task.title, time)){
                         return true;
                     }else{
                         return false;
@@ -54,14 +54,17 @@
                 return ;
             }
             sac.util.forcePress(elements.task.btn);
+            sac.util.print("Check in Successful!", 2);
+            sleep(8000);
             if(sac.whereis("task", 5000)){
-                sac.util.forcePress(elements.watchtv.id);
+                sac.util.forcePress(elements.btntv);
+                sleep(2000);
+                sac.util.print("Return to home!", 2);
             }
             
         },
         getauthor:()=>{
             let a = sac.util.prove(elements.home.author);
-           
             try{
                 var aname  = a.text();
             }catch(e){
@@ -102,10 +105,11 @@
             let e ;
             while(true){
             
-                if(sac.watchvideo()){
-                    sac.util.print("warning end!", 1);
+                if(!sac.watchvideo()){
+                    sac.util.print("Warning 5 times end!", 2);
                     return ;
                 }
+                sac.watchvideo();
                 e = parseInt(Date.now() / 1000);
                 if((e-s) < d){
                     continue ;
@@ -120,6 +124,7 @@
 
     sac.util.clean();
     sac.util.openApp(elements.Packagename);
+    sleep(10000);
     if(!sac.whereis("home", 30000)){
         sac.util.print("Start Error.", 2);
         return ;
