@@ -129,7 +129,7 @@
         sac.util.print("Start Error.", 2);
         return ;
     }
-    
+    sleep(15000);
     sac.checkin();
     sac.multi_watchvideo();
 
