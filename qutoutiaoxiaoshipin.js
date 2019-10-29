@@ -101,6 +101,7 @@
         },
         multi_watchvideo:()=>{
             let d = random(3600, 6000);
+            sac.util.print("Watch video time" + d + "seconds", 2);
             let s = parseInt(Date.now() / 1000);
             let e ;
             while(true){
@@ -132,5 +133,7 @@
     sleep(15000);
     sac.checkin();
     sac.multi_watchvideo();
+
+    sac.util.clean();
 
 })()
