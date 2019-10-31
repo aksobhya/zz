@@ -678,3 +678,5 @@ util.getsigin=(AppName)=>{
     return false;
 };
 module.exports = util;
+
+// 汉字utf8字符串  /^[\u4e00-\u9fa5]+$/
