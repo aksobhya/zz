@@ -2,19 +2,25 @@
     var elements = {
         AppName:"kuaishoujisuban",
         packageName:"com.kuaishou.nebula",
-        threebar:{
-            id:"left_btn"
-        }
+        signin:{
+            threebar:'className("android.widget.ImageView").id("left_btn")'
+        },
     }
-    let sac =  {
-        util:require('./util.js')
 
+    var sac = {util:require("./util.js")};
 
-    }
     sac.util.clean();
     sac.util.openApp(elements.packageName);
-    let a = sac.util.grope(elements.threebar,5000);
-    console.log(a);
+    sleep(10000);
+
+    let where = sac.util.grope(elements.signin, "threebar");
+    if(where("threebar", 5000)){
+        sac.util.forcePress(elements.signin.threebar);
+    }else{
+        sac.util.print("Home to Signin, Error!", 1);
+        return ;
+    }
+    
     sleep(10000);
 
 })()
