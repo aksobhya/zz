@@ -54,7 +54,7 @@
         return ;
     }
     
-    if(sac.util.gropev2(elements.redpage. 5000)){
+    if(sac.util.gropev2(elements.redpage, 5000)){
         sac.util.forcePress(elements.redpage.goearn);
         
         //watchvideo()
