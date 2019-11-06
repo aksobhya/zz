@@ -7,6 +7,7 @@ util.print=(message,level)=>{
     if(level===1||level===2||level===3){
         if(util.loglevel >= level){
             console.log(message)
+            //toastLog(message);
         };
     };
 };
@@ -27,7 +28,6 @@ util.visible=(element)=>{
         };
     }catch(e){
         util.print("获取父元素失败，但并不会造成验证失败 :",2);
-        util.print(e,2);
     };
     try{
         sizeX = element.bounds().width();
@@ -46,9 +46,7 @@ util.visible=(element)=>{
             return false;
         };
     }catch(e){
-        util.print(element,2);
-        util.print(e,2);
-        util.print("未检测到对象的坐标属性，错误退出",2);
+        util.print("未检测到对象的坐标属性",2);
         return false;
     };
 };
@@ -101,7 +99,6 @@ util.swipeEx=(qx, qy, zx, zy, time,excursion)=>{
         xxy.push(xxyy);
         
     }
-    util.print("滑动路径坐标"+ xxy,3);
     gesture.apply(null, xxy);
 };
 util.bezier_curves=(cp, t)=>{
@@ -122,30 +119,59 @@ util.bezier_curves=(cp, t)=>{
     result.y = (ay * tCubed) + (by * tSquared) + (cy * t) + cp[0].y;
     return result;
 };
-util.swip=(frequency,style,extent)=>{
-    //风格
-    let style = style || 3;
-    //滑动次数
-    let frequency = frequency || 3
-    //以上数值即权重
+util.swip=(e)=>{
+    e = e || {};
+    e.num = e.num || 1;
+    if(e.frequency){
+        e.num = util.weighted(e.frequency)
+    };
+    e.timeout = e.timeout || 2000;
+    let x1,x2,y1,y2,speed,enjoy
     //滚屏长度
     let swipStart = parseInt(device.height * random(66,73) / 100);
     let extent = parseInt( ( device.height - swipStart ) * random(77,94) / 100)
-    let num = util.weighted(3)
     util.print("滑动起点: "+swipStart+" 滑动终点: "+extent,3);
-    util.print("滑动次数 :"+num,3);
+    util.print("滑动次数 :"+e.num,3);
     while(true){
-        let x1 = parseInt(device.width*random(60,68)/100);
-        let x2 = x1
-        let y1 = swipStart;
-        let y2 = extent;
-        let speed = parseInt((y1-y2)*0.7);
+        x1 = parseInt(device.width*random(60,68)/100);
+        x2 = x1
+        y1 = swipStart;
+        y2 = extent;
+        speed = parseInt((y1-y2)*0.7);
+        enjoy = random(1000,e.timeout) 
         util.swipeEx(x1,y1, x2,y2, speed, 0.28);
-        if(num<=1){
+        if(e.num<=1){
             return;
-        }else{num--};
-        util.print("滑动间停顿",3);
-        sleep(random(600,1300))
+        }else{e.num--};
+        util.print("滑动间停顿: "+enjoy,3);
+        sleep(enjoy);
+    };
+};
+util.swipelift=(e)=>{
+    e = e || {};
+    e.num = e.num || 1;
+    if(e.frequency)e.num = util.weighted(e.frequency)
+    e.timeout = e.timeout || 2000;
+
+    let x1,x2,y1,y2,speed,enjoy
+    //滚屏长度
+    let swipStart = parseInt(device.width * random(13,25) / 100);
+    let extent = parseInt( ( device.width - swipStart ) * random(77,94) / 100)
+    util.print("滑动起点: "+swipStart+" 滑动终点: "+extent,3);
+    util.print("滑动次数 :"+e.num,3);
+    while(true){
+        x1 = extent;
+        x2 = swipStart; 
+        y1 = parseInt(device.height*random(60,68)/100);
+        y2 = y1;
+        speed = parseInt((x1-x2)*0.7);
+        enjoy = random(1000,e.timeout) 
+        util.swipeEx(x1,y1, x2,y2, speed, 0.48);
+        if(e.num<=1){
+            return;
+        }else{e.num--};
+        util.print("滑动间停顿: "+enjoy,3);
+        sleep(enjoy);
     };
 };
 util.forcePress=(ele,timeout)=>{
@@ -208,7 +234,6 @@ util.forcePress=(ele,timeout)=>{
         util.print("Ui对象 宽: "+element.bounds().height()+" 高: "+element.bounds().width(),3);
         util.print("偏移 x:"+excursionX+" y:"+excursionY,3);
     }catch(e){
-        util.print(e,2)
         util.print("对象无bounds属性，无法点击",2)
         return false;
     };
@@ -217,7 +242,6 @@ util.forcePress=(ele,timeout)=>{
         press(coordinate.x, coordinate.y,time);
         return true;
     }catch(e){
-        util.print(e,2)
         util.print("点击失败，错误返回",2)
         return false;
     };
@@ -261,10 +285,7 @@ util.getreadlist=(AppName)=>{
     let today = new Date().getFullYear() + new Date().getMonth() + new Date().getDate();
     storage = storages.create(AppName);
     readlist = storage.get(today+"_readlist");
-    if(readlist){
-        util.print("今日阅读列表:",3);
-        util.print(readlist,3);
-    }else{
+    if(!readlist){
         util.print("今日阅读列表为空，初始化列表",3)
         readlist = [];
         storage.put(today+"_readlist",readlist);
@@ -276,6 +297,7 @@ util.savereadlist=(AppName,title)=>{
     let readlist;
     storage = storages.create(AppName);
     readlist = storage.get(today+"_readlist");
+    if(!readlist)readlist=[];
     readlist.push(title);
     storage.put(today+"_readlist",readlist);
     util.print("写入已读列表 ====> "+title,3)
@@ -360,20 +382,20 @@ util.weighted=(weight)=>{
     hash = hash.sort()
     return hash[random(0,hash.length-1)]
 };
-util.shortvideoswipup=(author)=>{
+util.shortvideoswipup=(author,speed)=>{
     let svs=()=>{
         let x1 = random(parseInt(device.width*0.67),parseInt(device.width*0.69))
         let y1 = random(parseInt(device.height*0.88),parseInt(device.height*0.93))
         let x2 = random(parseInt(device.width*0.69),parseInt(device.width*0.71))
         let y2 = random(parseInt(device.height*0.17),parseInt(device.height*0.24))
-        let speed = parseInt((y1-y2)*0.45703);
+        speed = speed || parseInt((y1-y2)*0.45703);
         util.swipeEx(x1,y1, x2,y2, speed, 0.047);
     };
     if(!author){
         svs();
         return true; 
     };
-    let [count,max] = [0,3]
+    let [count,max] = [0,1]
     while(true){
         if(count>max){
             return false;
@@ -408,10 +430,10 @@ util.like=(prob,max)=>{
         sleep(random(15,69)); 
     };
 };
-util.follow=(ele,prob)=>{
+util.percent=(ele,prob)=>{
     prob = prob || 99;
-    if(random(0,prob)===0){
-        util.print("关注主播",3)
+    if(random(1,prob)===1){
+        util.print("关注",3)
         if(util.forcePress(ele)){
             util.print("关注成功",3);
         }else{
@@ -434,7 +456,7 @@ util.prove=(ele,timeout,func)=>{
         util.print("输入类型: string",3)
         if(/\.findOne\(.*\)$/.test(ele)||
            /\.find\(.*\)$/.test(ele)||
-           /\.find\(.*\]$/.test(ele))
+           /.*]$/.test(ele))
         {
             util.print("多层搜索方法，移除 func",3)
             func = "";
@@ -452,12 +474,21 @@ util.prove=(ele,timeout,func)=>{
             };
         };    
     };
+
+
     util.print("CLI :"+condtion+func,3)
-    try{target = eval(condtion+func)}catch(e){
-        util.print(e,3)
-        util.print("获取元素失败，错误返回",3)
-        return false
-    }
+    try{target = eval(condtion+func)}catch(e){};
+
+    if(!target){
+        if(/text.*\(/.test(condtion)){
+            condtion = condtion.replace("text(","desc(");
+            condtion = condtion.replace("textEndsWith(","descEndsWith(");
+            condtion = condtion.replace("textStartsWith(","descStartsWith(");
+            condtion = condtion.replace("textMatches(","descMatches(");
+            util.print("try again CLI :"+condtion+func,3)
+            try{target = eval(condtion+func)}catch(e){};        
+        };
+    };
     if(!target){
         util.print("未找到元素",3)
         return false;
@@ -465,15 +496,13 @@ util.prove=(ele,timeout,func)=>{
     return target;
 };
 util.getlist=(elements)=>{
-    util.getlist.filter=(elements,object,title,readlist)=>{
-        try{
-            for(ele of elements){
-                if(object.findOne(eval(element))){
-                    return true;
-                };
+    util.getlist.filter=(elements,object,readlist,title)=>{
+        for(ele in elements){
+            if(object.findOne(eval(elements[ele]))){
+                return true;
             };
-        }catch(e){}
-        if(readlist.indexOf(title) !== -1){
+        };
+        if(readlist.indexOf(title)!==-1){
             return true
         };
         return false;
@@ -497,38 +526,40 @@ util.getlist=(elements)=>{
     };
     util.getlist.video=(object,element)=>{
         try{
-            const video = object.findOne(element);
+            const video = object.findOne(eval(element));
             var duration = video.text();
         }catch(e){return false};
 
         if(duration){
+            util.print("类型: 视频",3)
             return duration;
         };
         return false;
     };
     util.getlist.pic=(object,element)=>{
         try{
-            var pic = object.findOne(element);
+            var pic = object.findOne(eval(element));
         }catch(e){return false};
         if(pic){
+            util.print("类型: 图集",3)
             return true;
         };
         return false;
     };
 
     elements = elements;
-    return function(){
-        let uiobjlist
-        let result=[]
-        let newsobject={}
+    return function(readlist){
+        let uiobjlist,pic;
+        let result=[];
+        let newsobject;
         
         uiobjlist = util.prove(elements.group,"",'find');
         if(!uiobjlist){
-            util.print("尝试获取推荐阅读列表，返回",3);
+            util.print("尝试获取推荐阅读列表，返回",2);
             uiobjlist = util.prove(elements.innerGroup,"",'find');
         };
         if(!uiobjlist){
-            util.print("未找到任何新闻列表，返回",3);
+            util.print("未找到任何新闻列表，返回",2);
             return false;
         };
 
@@ -541,16 +572,17 @@ util.getlist=(elements)=>{
                 continue;
             };
 
-            if(util.getlist.filter(elements.filter,uiobj,newsobject.title))continue;
+            if(util.getlist.filter(elements.filter,uiobj,readlist,newsobject.title))continue;
 
-            newsobject.duration = util.getlist.getvideo(uiobj,elements.video);
+            newsobject.duration = util.getlist.video(uiobj,elements.video);
             if(newsobject.duration){
                 newsobject.type = "video";
             };
 
-            pictag = util.getlist.getpic(uiobj,elements.pic);
-            if(pictag)newsobject.type = "pic";
-
+            pic = util.getlist.pic(uiobj,elements.pic);
+            if(pic){
+                newsobject.type = "pic";
+            };
             newsobject.uiobject = uiobj;
             result.push(newsobject);
         };
@@ -567,6 +599,18 @@ util.grope=(elements,intent,timeout)=>{
         elements.task : {'元素描述', '元素描述'} 
     */
     let select=(inte)=>{
+        let ergodic=(objs)=>{
+            try{
+                for(let o of objs){
+                    if(util.visible(o)){
+                    return true; 
+                    };
+                };
+            }catch(e){
+                util.print(e,3)
+            };
+            return false;
+        };
         let intent = elements[inte];
         if(intent){
             util.print("查询意图: "+inte,3);
@@ -577,8 +621,9 @@ util.grope=(elements,intent,timeout)=>{
         };
         for(i in intent){
             util.print("验证 "+inte+" 中的元素: "+intent[i],3)
-            if(!util.visible(util.prove(intent[i],timeout))){
-                util.print(inte+" 验证失败",2)
+            uiobjects = util.prove(intent[i],timeout);
+            util.print("逐一验证可见性",3)
+            if(!ergodic(uiobjects)){
                 return false;
             };
         };
@@ -600,55 +645,76 @@ util.grope=(elements,intent,timeout)=>{
     };
     return select(intent);
 };
-util.gropev2=(ele)=>{
+util.gropev2=(objects)=>{
     /*
     elements 对象 
         elements.home : {'元素描述', '元素描述'}
         elements.task : {'元素描述', '元素描述'} 
     */
-    let elements = ele;
+    let {elements,package} = objects;
+    return function(args) {
 
-    return function(intent,timeout) {
         let select=(inte)=>{
-            let intent = elements[inte];
-            if(intent){
+            let page = elements[inte];
+            let uiobjects;
+            if(page){
                 util.print("查询意图: "+inte,3);
             }else{
-                util.print(inte+" :意图不在预定义的对象结构中",2)
+                util.print(inte+" :意图不在对象结构中",2)
                 util.print(elements,2)
                 return false;
             };
-            for(i in intent){
-                util.print("验证 "+inte+" 中的元素: "+intent[i],3)
-                if(!util.visible(util.prove(intent[i],timeout))){
-                    util.print(inte+" 验证失败",2)
+            for(i in page){
+                util.print("验证 "+inte+" 中的元素: "+page[i],3)
+                uiobjects = util.prove(page[i],timeout);
+                if(!uiobjects){
+                    return false;
+                };
+                if(unvisible){
+                    util.print("无需验证可见性",3)
+                    continue;
+                };
+                if(!util.visible(uiobjects)){
                     return false;
                 };
             };
             util.print(inte+" 验证通过",3)
-            return inte;
+            return true;
         };
 
         util.print("开始摸索环境",3)
-        let i,current
+        let {intent,timeout,unvisible} = args;
         timeout = timeout || 50
-        if(!intent){
-            util.print("查询当前所在页面:",3)
-            for(i in elements){
-                current = select(i);
-                if(current)return current;
+
+        if(package){
+            util.print("验证包: "+package,3)
+            if(!packageName(package).findOne(10)===null){
+               if(!packageName(".+").findOne(100).packageName()===package){
+                    util.print("验证通过",3)
+                   return false;
+                };
             };
-            util.print("结果: 未知",2)
+            util.print("跳过验证",3);
+        };
+
+        if(!intent){
+            util.print("查询当前所在页面:",3);
+            for(let i in elements){
+                if(select(i)){
+                    return i;
+                };
+            };
             return false;
         };
+
         return select(intent);
     };
 };
 util.unfold=(element)=>{
     let unfold = util.prove(element);
-    if(sac.util.visible(unfold)){
+    if(util.visible(unfold)){
         sleep(500);
-        if(sac.util.forcePress(unfold,5)){
+        if(util.forcePress(unfold,5)){
             return true;
         };
         sleep(500);
